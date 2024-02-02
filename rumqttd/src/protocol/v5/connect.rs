@@ -1,5 +1,3 @@
-use crate::protocol::Connect;
-
 use super::*;
 use bytes::{Buf, Bytes};
 

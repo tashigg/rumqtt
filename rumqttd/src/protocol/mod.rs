@@ -11,8 +11,6 @@ use std::{io, str::Utf8Error, string::FromUtf8Error};
 /// map to what MQTT specifies in its protocol
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 
-use crate::Notification;
-
 // TODO: Handle the cases when there are no properties using Inner struct, so
 // handling of properties can be made simplier internally
 
