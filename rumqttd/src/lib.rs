@@ -31,11 +31,8 @@ mod router;
 mod segments;
 mod server;
 
-pub type ConnectionId = usize;
-pub type RouterId = usize;
+pub use router::{ConnectionId, Filter, RouterConfig, RouterId, Topic};
 pub type NodeId = usize;
-pub type Topic = String;
-pub type Filter = String;
 pub type TopicId = usize;
 pub type Offset = (u64, u64);
 pub type Cursor = (u64, u64);
@@ -158,25 +155,6 @@ pub struct ClusterSettings {
     pub listen: String,
     /// Address of clusters that this node has to initiate connection
     pub seniors: Vec<(ConnectionId, String)>,
-}
-
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct RouterConfig {
-    pub max_connections: usize,
-    pub max_outgoing_packet_count: u64,
-    pub max_segment_size: usize,
-    pub max_segment_count: usize,
-    pub custom_segment: Option<HashMap<String, SegmentConfig>>,
-    pub initialized_filters: Option<Vec<Filter>>,
-    // defaults to Round Robin
-    #[serde(default)]
-    pub shared_subscriptions_strategy: Strategy,
-}
-
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct SegmentConfig {
-    pub max_segment_size: usize,
-    pub max_segment_count: usize,
 }
 
 type ReloadHandle = Handle<EnvFilter, Layered<Layer<Registry, Pretty, Format<Pretty>>, Registry>>;

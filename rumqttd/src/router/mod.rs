@@ -6,22 +6,19 @@ use std::{
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    protocol::{
-        ConnAck, ConnAckProperties, Disconnect, DisconnectProperties, Packet, PingResp, PubAck,
-        PubAckProperties, PubComp, PubCompProperties, PubRec, PubRecProperties, PubRel,
-        PubRelProperties, Publish, PublishProperties, SubAck, SubAckProperties, UnsubAck,
-    },
-    ConnectionId, Filter, RouterId, Topic,
+use crate::protocol::{
+    ConnAck, ConnAckProperties, Disconnect, DisconnectProperties, Packet, PingResp, PubAck,
+    PubAckProperties, PubComp, PubCompProperties, PubRec, PubRecProperties, PubRel,
+    PubRelProperties, Publish, PublishProperties, SubAck, SubAckProperties, UnsubAck,
 };
 
-mod alertlog;
+pub(crate) mod alertlog;
 mod connection;
-mod graveyard;
+pub(crate) mod graveyard;
 pub mod iobufs;
 mod logs;
 mod routing;
-mod scheduler;
+pub(crate) mod scheduler;
 pub(crate) mod shared_subs;
 mod waiters;
 
@@ -33,7 +30,30 @@ pub use waiters::Waiters;
 pub const MAX_SCHEDULE_ITERATIONS: usize = 100;
 pub const MAX_CHANNEL_CAPACITY: usize = 200;
 
+pub type ConnectionId = usize;
+pub type Filter = String;
 pub(crate) type FilterIdx = usize;
+pub type RouterId = usize;
+pub type Topic = String;
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct RouterConfig {
+    pub max_connections: usize,
+    pub max_outgoing_packet_count: u64,
+    pub max_segment_size: usize,
+    pub max_segment_count: usize,
+    pub custom_segment: Option<HashMap<String, SegmentConfig>>,
+    pub initialized_filters: Option<Vec<Filter>>,
+    // defaults to Round Robin
+    #[serde(default)]
+    pub shared_subscriptions_strategy: shared_subs::Strategy,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct SegmentConfig {
+    pub max_segment_size: usize,
+    pub max_segment_count: usize,
+}
 
 #[derive(Debug)]
 // TODO: Fix this

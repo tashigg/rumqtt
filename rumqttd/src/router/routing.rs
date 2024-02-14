@@ -7,7 +7,7 @@ use crate::protocol::{
 use crate::router::alertlog::alert;
 use crate::router::graveyard::SavedState;
 use crate::router::scheduler::{PauseReason, Tracker};
-use crate::router::Forward;
+use crate::router::{Filter, Forward};
 use crate::segments::Position;
 use crate::*;
 use flume::{bounded, Receiver, RecvError, Sender, TryRecvError};
