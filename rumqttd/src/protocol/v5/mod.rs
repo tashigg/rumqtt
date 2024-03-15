@@ -352,6 +352,38 @@ fn read_u32(stream: &mut Bytes) -> Result<u32, Error> {
     Ok(stream.get_u32())
 }
 
+// this maybe should be part of the packet type parsing?
+fn check_reserved_flags(packet_type: PacketType, byte1: u8) -> Result<(), Error> {
+    // there are 3 "groups" of packets:
+    // - PUBLISH (no bits are reserved)
+    // - reserved bits are 0b0000
+    // - reserved bits are 0b0010
+    // Data from MQTT v5 spec § 2.1.3 Table 2-2.
+    let expected = match packet_type {
+        PacketType::Publish => return Ok(()),
+        PacketType::Connect
+        | PacketType::ConnAck
+        | PacketType::PubAck
+        | PacketType::PubRec
+        | PacketType::PubComp
+        | PacketType::SubAck
+        | PacketType::UnsubAck
+        | PacketType::PingReq
+        | PacketType::PingResp
+        | PacketType::Disconnect => 0b0000,
+
+        PacketType::PubRel | PacketType::Subscribe | PacketType::Unsubscribe => 0b0010,
+    };
+
+    if byte1 & 0b1111 == expected {
+        Ok(())
+    } else {
+        // Where a flag bit is marked as “Reserved”, it is reserved for future use and MUST be set to the value listed [MQTT-2.1.3-1]
+        // If invalid flags are received it is a Malformed Packet (MQTTv5 § 2.1.3).
+        Err(Error::MalformedPacket)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct V5;
 
@@ -363,6 +395,7 @@ impl Protocol for V5 {
         // Test with a stream with exactly the size to check border panics
         let packet = stream.split_to(fixed_header.frame_length());
         let packet_type = fixed_header.packet_type()?;
+        check_reserved_flags(packet_type, fixed_header.byte1)?;
 
         if fixed_header.remaining_len == 0 {
             // no payload packets
